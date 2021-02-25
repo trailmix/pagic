@@ -1,0 +1,28 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Program2",
+      "request": "launch",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "run",
+        "--unstable",
+        "--inspect",
+        "-A",
+        "mod.ts",
+        "build",
+        "--serve",
+        "--port",
+        "8000",
+        "--watch"
+      ],
+      "port": 9229,
+      "type": "node",
+      "outputCapture": "std"
+    }
+  ]
+}

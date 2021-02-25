@@ -18,6 +18,10 @@ Deno.test('[importTheme]', async () => {
   const themeMod = await importTheme('default');
   asserts.assert(Array.isArray(themeMod.files));
 });
+Deno.test('[importTheme] mod.ts', async () => {
+  const themeMod = await importTheme('https://deno.land/x/pagic@v1.2.0/src/themes/docs/mod.ts');
+  themeMod
+});
 Deno.test('[importTheme] _layout.tsx', async () => {
   const Layout = await importTheme('default', '_layout.tsx');
   asserts.assert(Layout instanceof Function);

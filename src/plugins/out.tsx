@@ -36,12 +36,15 @@ const out: PagicPlugin = {
       const dest = path.resolve(pagic.config.outDir, staticPath);
       if (await fs.exists(src)) {
         await ensureDirAndCopy(src, dest, { overwrite: true });
-      } else {
-        if (/^https?:\/\//.test(pagic.config.theme)) {
-          await download(pagic.config.theme.replace(/\/[^\/]+$/, `/${staticPath}`), dest);
+      } else if (/^https?:\/\//.test(pagic.config.theme)) {
+        await download(pagic.config.theme.replace(/\/[^\/]+$/, `/${staticPath}`), dest);
         } else {
           await copyPagicFile(`src/themes/${pagic.config.theme}/${staticPath}`, dest);
-        }
+        await copyPagicFile(`src/themes/${pagic.config.theme}/${staticPath}`, dest);
+      } else {
+        await ensureDirAndCopy(path.resolve(pagic.config.srcDir, pagic.config.theme, staticPath), dest, {
+          overwrite: true,
+        });
       }
     }
 

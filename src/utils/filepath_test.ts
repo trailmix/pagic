@@ -11,6 +11,7 @@ import {
   walk,
 } from './filepath.ts';
 import Pagic from '../Pagic.ts';
+import { REGEXP_PAGE, REGEXP_LAYOUT } from '../../mod.ts';
 
 Deno.test('[pagicRootPath]', () => {
   asserts.assertEquals(pagicRootPath, path.resolve(path.fromFileUrl(import.meta.url), '../../../'));
@@ -97,7 +98,7 @@ Deno.test('[walk]', async () => {
   asserts.assertEquals(
     sort(
       await walk('test/fixtures/walk', {
-        match: [Pagic.REGEXP_PAGE],
+        match: [REGEXP_PAGE],
       }),
     ),
     ['.foo/foo.md', 'a/bar.tsx', 'a/c/foo.md', 'b/foo.md', 'bar.md', 'foo.md', 'foo.tsx'],
@@ -105,7 +106,7 @@ Deno.test('[walk]', async () => {
   asserts.assertEquals(
     sort(
       await walk('test/fixtures/walk', {
-        match: [Pagic.REGEXP_LAYOUT],
+        match: [REGEXP_LAYOUT],
       }),
     ),
     ['_header.tsx', '_layout.tsx', 'a/_bar.tsx', 'a/_layout.tsx', 'a/c/_foo.tsx', 'b/_foo.tsx'],
@@ -113,7 +114,7 @@ Deno.test('[walk]', async () => {
   asserts.assertEquals(
     sort(
       await walk('test/fixtures/walk', {
-        skip: [Pagic.REGEXP_PAGE, Pagic.REGEXP_LAYOUT],
+        skip: [REGEXP_PAGE, REGEXP_LAYOUT],
       }),
     ),
     ['.bar', 'a/bar', 'a/c/foo', 'b/foo', 'bar', 'foo'],
@@ -121,7 +122,7 @@ Deno.test('[walk]', async () => {
   asserts.assertEquals(
     sort(
       await walk('test/fixtures/walk', {
-        skip: [path.globToRegExp('**/.*'), Pagic.REGEXP_LAYOUT],
+        skip: [path.globToRegExp('**/.*'), REGEXP_LAYOUT],
       }),
     ),
     ['a/bar', 'a/bar.tsx', 'a/c/foo', 'a/c/foo.md', 'b/foo', 'b/foo.md', 'bar', 'bar.md', 'foo', 'foo.md', 'foo.tsx'],
@@ -138,7 +139,7 @@ Deno.test('[walk]', async () => {
   asserts.assertEquals(
     sort(
       await walk('test/fixtures/walk', {
-        match: [Pagic.REGEXP_PAGE],
+        match: [REGEXP_PAGE],
         include: ['a'],
       }),
     ),
@@ -147,7 +148,7 @@ Deno.test('[walk]', async () => {
   asserts.assertEquals(
     sort(
       await walk('test/fixtures/walk', {
-        match: [Pagic.REGEXP_PAGE],
+        match: [REGEXP_PAGE],
         exclude: ['b'],
       }),
     ),
@@ -156,7 +157,7 @@ Deno.test('[walk]', async () => {
   asserts.assertEquals(
     sort(
       await walk('test/fixtures/walk', {
-        match: [Pagic.REGEXP_PAGE],
+        match: [REGEXP_PAGE],
         include: ['a'],
         exclude: ['c'],
       }),

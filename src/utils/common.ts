@@ -52,6 +52,17 @@ export function depthFirstTraversal<T>(tree: Tree<T> | Tree<T>[], callback: (ite
 // #endregion
 
 // #region Log utils
+// pass string or string[] return a string underlined with optional delimiter
+export function underline(strings: string | string[], delimiter = ' | ') {
+  if (Array.isArray(strings)) {
+    return strings.length > 0
+      ? strings.reduce((p, c, i) => {
+          return `${i === 1 ? colors.underline(p) : p}${delimiter}${colors.underline(c)}`;
+        })
+      : colors.underline('');
+  } else return colors.underline(strings);
+}
+
 export const logger = {
   info: (...args: string[]) => {
     console.log('[Pagic]', ...args);
@@ -112,10 +123,10 @@ export function sortByInsert<
     });
 }
 
-export async function getPagicConfigPath() {
-  let pagicConfigPath = path.resolve('pagic.config.tsx');
+export async function getPagicConfigPath(srcDir = '.') {
+  let pagicConfigPath = path.resolve(`${srcDir}/pagic.config.tsx`);
   if (!(await fs.exists(pagicConfigPath))) {
-    pagicConfigPath = path.resolve('pagic.config.ts');
+    pagicConfigPath = path.resolve(`${srcDir}/pagic.config.ts`);
     if (!(await fs.exists(pagicConfigPath))) {
       throw new Error('pagic.config.ts not exist');
     }

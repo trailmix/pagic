@@ -33,6 +33,8 @@ export async function importTheme(theme: string, themeFile?: string) {
     return await importDefault<PagicThemeConfig>(themeFile ? theme.replace(/\/[^\/]+$/, `/${themeFile}`) : theme);
   } else {
     return await importPagicModDefault<PagicThemeConfig>(`src/themes/${theme}/${themeFile ?? 'mod.ts'}`);
+  } else {
+    return await importDefault<PagicThemeConfig>(`../../${theme}/${themeFile ? themeFile : 'mod.ts'}`);
   }
 }
 /** Replacement of dynamic import default */

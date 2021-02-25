@@ -90,7 +90,14 @@ const script: PagicPlugin = {
     if (pagic.rebuilding) {
       for (const layoutPath of pagic.layoutPaths) {
         const layoutDest = replaceExt(layoutPath, '.js');
-        const compileSrc = path.resolve(pagic.config.srcDir, layoutPath);
+        let compileSrc = '';
+        if (fs.existsSync('./' + pagic.config.theme)) {
+          compileSrc = path.resolve(
+            `${path.dirname(pagic.pagicConfigPath)}/${pagic.config.theme.replace(/^(\.\.\/){2}/g, '')}/${layoutPath}`,
+          );
+        } else {
+          compileSrc = path.resolve(pagic.config.srcDir, layoutPath);
+        }
         if (await fs.exists(compileSrc)) {
           pagic.writeFiles[layoutDest] = await compileFile(compileSrc);
         } else {

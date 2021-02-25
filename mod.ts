@@ -5,8 +5,11 @@ export { t, Trans } from './src/plugins/i18n.tsx';
 import { fs } from './deps.ts';
 import { logger } from './src/utils/mod.ts';
 import Pagic from './src/Pagic.ts';
-export default Pagic;
+// export default Pagic;
 export * from './src/Pagic.ts';
+
+export const REGEXP_PAGE = /[\/\\][^_][^\/\\]*\.(md|tsx)$/;
+export const REGEXP_LAYOUT = /[\/\\]_[^\/\\]+\.tsx$/;
 
 import { Command } from 'https://deno.land/x/cliffy@v0.16.0/command/mod.ts';
 import { Select } from 'https://deno.land/x/cliffy@v0.16.0/prompt/select.ts';
@@ -18,6 +21,9 @@ if (import.meta.main) {
     .option('--watch [watch:boolean]', 'Watch file changes to rebuild')
     .option('--serve [serve:boolean]', 'Start local service, preview static website')
     .option('--port <port:number>', 'Specify the local port of the service')
+    .option('-s --srcDir <path:string>', 'Directory where pagic.config.ts|x resides', {
+      default: '.',
+    })
     .action((options: any) => {
       const pagic = new Pagic(options);
       pagic.build();

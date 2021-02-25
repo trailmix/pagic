@@ -6,3 +6,5 @@ export * from './import.ts';
 export * from './filepath.ts';
 export * from './serve.ts';
 export * from './substring.ts';
+export { default as PagicWatcher } from './PagicWatcher.ts';
+export { default as PagicWatcherFactory } from './PagicWatcherFactory.ts';

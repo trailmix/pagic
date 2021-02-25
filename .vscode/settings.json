@@ -1,5 +1,16 @@
 {
   "files.eol": "\n",
+  "deno.codeLens.implementations": true,
+  "deno.codeLens.references": true,
+  "deno.codeLens.referencesAllFunctions": true,
+  "typescript.referencesCodeLens.enabled": true,
+  "typescript.suggestionActions.enabled": true,
+  "editor.snippetSuggestions": "inline",
+  "typescript.implementationsCodeLens.enabled": true,
+  "vsintellicode.typescript.completionsEnabled": true,
+  "typescript.suggest.completeJSDocs": true,
+  "typescript.suggest.completeFunctionCalls": true,
+  "typescript.referencesCodeLens.showOnAllFunctions": true,
   "editor.tabSize": 2,
   // 保存时自动格式化
   "editor.formatOnSave": true,
