@@ -5,9 +5,12 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Program2",
+      "name": "build: watch and serve",
       "request": "launch",
       "runtimeExecutable": "deno",
+      "env": {
+        "LOG_LEVEL": "DEBUG"
+      },
       "runtimeArgs": [
         "run",
         "--unstable",
@@ -20,6 +23,30 @@
         "8000",
         "--watch"
       ],
+      "port": 9229,
+      "type": "node",
+      "outputCapture": "std"
+    },
+    {
+      "name": "init: theme",
+      "request": "launch",
+      "runtimeExecutable": "deno",
+      "env": {
+        "LOG_LEVEL": "DEBUG"
+      },
+      "runtimeArgs": ["run", "--unstable", "--inspect", "-A", "mod.ts", "init", "--theme"],
+      "port": 9229,
+      "type": "node",
+      "outputCapture": "std"
+    },
+    {
+      "name": "init: site",
+      "request": "launch",
+      "runtimeExecutable": "deno",
+      "env": {
+        "LOG_LEVEL": "DEBUG"
+      },
+      "runtimeArgs": ["run", "--unstable", "--inspect", "-A", "mod.ts", "init", "--site"],
       "port": 9229,
       "type": "node",
       "outputCapture": "std"
