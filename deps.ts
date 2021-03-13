@@ -1,8 +1,22 @@
+export {
+  LoggerConfig,
+  Logger,
+  setup as setupLogger,
+  getLogger,
+  handlers as loggerHandlers,
+} from 'https://deno.land/std@0.84.0/log/mod.ts';
+export type { BaseHandler, FileHandler } from 'https://deno.land/std@0.84.0/log/handlers.ts';
+export type { LogRecord } from 'https://deno.land/std@0.84.0/log/logger.ts';
 export * as fs from 'https://deno.land/std@0.84.0/fs/mod.ts';
 export * as path from 'https://deno.land/std@0.84.0/path/mod.ts';
 export * as colors from 'https://deno.land/std@0.84.0/fmt/colors.ts';
 export * as server from 'https://deno.land/std@0.84.0/http/server.ts';
 export * as asserts from 'https://deno.land/std@0.84.0/testing/asserts.ts';
+
+export type { ITypeInfo } from 'https://deno.land/x/cliffy@v0.16.0/flags/mod.ts';
+export { Confirm } from 'https://deno.land/x/cliffy@v0.16.0/prompt/confirm.ts';
+export { Command } from 'https://deno.land/x/cliffy@v0.16.0/command/mod.ts';
+export { Select } from 'https://deno.land/x/cliffy@v0.16.0/prompt/select.ts';
 
 // @deno-types="https://cdn.pagic.org/@types/react@16.9.50/index.d.ts"
 import * as React from 'https://cdn.pagic.org/react@16.13.1/esnext/react.development.js';
