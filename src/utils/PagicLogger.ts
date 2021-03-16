@@ -1,6 +1,6 @@
-import { colors, setupLogger, getLogger, loggerHandlers as handlers } from '../../deps.ts';
-import type { LogRecord, Logger, BaseHandler, FileHandler, LoggerConfig } from '../../deps.ts';
-import type { PagicLogConfig } from './PagicConfiguration.ts';
+import { colors, setupLogger, getLogger, loggerHandlers as handlers, LogRecord } from '../../deps.ts';
+import type { Logger, BaseHandler, FileHandler, LoggerConfig } from '../../deps.ts';
+import type { PagicLogConfig, PagicLogConfigMap } from './PagicConfiguration.ts';
 import { default as PagicConfiguration } from './PagicConfiguration.ts';
 // #region logging
 export type LogFormat = 'json' | 'function' | 'string';
@@ -11,8 +11,9 @@ export interface PagicMessage {
   level: number;
   msg: string;
 }
-export type LogColors = 'clear' | 'blue' | 'yellow' | 'red' | 'green';
+export type LogColors = 'white' | 'clear' | 'blue' | 'yellow' | 'red' | 'green';
 enum logColors {
+  'NOTSET' = 'white',
   'DEBUG' = 'clear',
   'INFO' = 'blue',
   'WARNING' = 'yellow',
@@ -20,42 +21,135 @@ enum logColors {
   'CRITICAL' = 'green',
 }
 // #endregion
-
+/** Construct a Pagic Logger.
+ * @example
+ * // returns default logger
+ * const l = new PagicLogger()
+ * // returns Pagic logger
+ * const l = await new PagicLogger().init('Pagic')
+ * // log success _message oneliner
+ * (await new PagicLogger().init('Pagic')).success('main','_message')
+ * // log success _message with object
+ * const l = await new PagicLogger().init('Pagic')
+ * l.success('main','_message')
+ */
 export default class PagicLogger {
-  private static _loggers: string[] = ['default', 'PagicConfiguration', 'PagicWatcherFactory', 'PagicWatcher', 'Pagic']; // init static logger list
-  private static _config: PagicLogConfig[] = PagicConfiguration.log; // init static log config
-  public name = 'Pagic';
-  public logger: Logger = getLogger(this.name); // set logger to default logger
-  private _handlers: { [x: string]: BaseHandler | FileHandler } = this.getHandlers(); // other handlers
-  private _loggers: { [x: string]: LoggerConfig } = this.getLoggers(Object.keys(this._handlers)); // other loggers
+  private static _loggers: string[] = [
+    'default',
+    'test',
+    'PagicConfiguration',
+    'PagicWatcherFactory',
+    'PagicWatcher',
+    'Pagic',
+  ]; // init static logger list
+  private static _config: PagicLogConfigMap = PagicConfiguration.log; // init static log config
+  public name = 'default';
+  public logger: Logger = getLogger(); // set logger to default logger
+  private _config: PagicLogConfigMap = PagicLogger._config;
+  /** Construct the default logger.
+   * @public
+   * @constructor
+   */
   public constructor(name = 'default') {
     this.name = name;
-    this.logger = getLogger(name);
-    // console.log(this);
+    this.logger = getLogger();
   }
-  public async init(name = this.name, handlers = this._handlers, loggers = this._loggers): Promise<PagicLogger> {
-    await setupLogger({ handlers: handlers, loggers: loggers });
+  /** Initialize the loggers and handlers.
+   * @public
+   * @example
+   * // returns Pagic logger
+   * const l = await new PagicLogger().init('Pagic')
+   */
+  public async init(name = this.name, config: PagicLogConfigMap = this._config): Promise<PagicLogger> {
+    this._config = config;
+    await setupLogger({ handlers: this._handlers, loggers: this._loggers });
     this.name = name;
     this.logger = getLogger(name);
-    // console.log(this);
     return this;
   }
-  public debug(first: string, ...args: any[]) {
-    this.logger.debug([first, JSON.stringify(args.toString())].join(' '));
+  /** DEBUG _message
+   * @public
+   * @example
+   * const l = await new PagicLogger().init('Pagic')
+   * l.debug('main','_message')
+   */
+  public debug(first: string, ...args: any[]): string {
+    if (this.name === 'test') this._dedebug([first, args].join(' '), ...args);
+    return this.logger.debug(first, ...args);
   }
-  public info(first: string, ...args: any[]) {
-    this.logger.info([first, JSON.stringify(args.toString())].join(' '));
+  /** INFO _message
+   * @public
+   * @example
+   * const l = await new PagicLogger().init('Pagic')
+   * l.info('main','_message')
+   */
+  public info(first: string, ...args: any[]): string {
+    return this.logger.info(first, ...args);
   }
-  public warn(first: string, ...args: any[]) {
-    this.logger.warning([first, JSON.stringify(args.toString())].join(' '));
+  /** WARN _message
+   * @public
+   * @example
+   * const l = await new PagicLogger().init('Pagic')
+   * l.warn('main','_message')
+   */
+  public warn(first: string, ...args: any[]): string {
+    return this.logger.warning(first, ...args);
   }
-  public error(first: string, ...args: any[]) {
-    this.logger.error([first, JSON.stringify(args.toString())].join(' '));
+  /** ERROR _message
+   * @public
+   * @example
+   * const l = await new PagicLogger().init('Pagic')
+   * l.error('main','_message')
+   */
+  public error(first: string, ...args: any[]): string {
+    return this.logger.error(first, ...args);
   }
-  public success(first: string, ...args: any[]) {
-    this.logger.critical([first, JSON.stringify(args.toString())].join(' '));
+  /** SUCCESS _message
+   * @public
+   * @example
+   * const l = await new PagicLogger().init('Pagic')
+   * l.success('main','_message')
+   */
+  public success(first: string, ...args: any[]): string {
+    return this.logger.critical(first, ...args);
   }
-  private getLogger(name = this.name, handlers: string[] = ['console']): { [x: string]: LoggerConfig } {
+  /** deDEBUG _message - only works in 'test'
+   * @private
+   * @example
+   * const l = await new PagicLogger('test').init('Pagic')
+   * l.debug('main','_message')
+   */
+  private _dedebug(msg: string, ...args: any[]): string {
+    return this._message(
+      new LogRecord({
+        level: 0,
+        msg: 'deDEBUG:' + msg,
+        args: args,
+        loggerName: this.name,
+      }),
+      this._config.console,
+      'console',
+    );
+  }
+  private get _loggers(): { [x: string]: LoggerConfig } {
+    return PagicLogger._loggers.reduce((prev: any, current: any) => {
+      return {
+        ...(typeof prev === 'string' ? this._getLogger(prev, Object.keys(this._handlers)) : prev),
+        ...(typeof current === 'string' ? this._getLogger(current, Object.keys(this._handlers)) : {}),
+      };
+    }, {});
+  }
+  private get _handlers(): { [x: string]: BaseHandler | FileHandler } {
+    return Object.entries(this._config).reduce((prev: any, current: any, i) => {
+      return {
+        ...(i === 0 ? {} : prev),
+        ...{
+          [current[0]]: this._getHandler(current[0], current[1]),
+        },
+      };
+    }, {});
+  }
+  private _getLogger(name = this.name, handlers: string[] = ['console']): { [x: string]: LoggerConfig } {
     return {
       [name]: {
         level: 'DEBUG',
@@ -63,30 +157,12 @@ export default class PagicLogger {
       },
     };
   }
-  private getLoggers(handlers: string[]) {
-    return PagicLogger._loggers.reduce((prev: any, current: any) => {
-      return {
-        ...(typeof prev === 'string' ? this.getLogger(prev, handlers) : prev),
-        ...(typeof current === 'string' ? this.getLogger(current, handlers) : {}),
-      };
-    }, {});
-  }
-  private getHandlers() {
-    return PagicLogger._config.reduce((prev: any, current: any, i) => {
-      return {
-        ...(i === 0 ? {} : prev),
-        ...{
-          [current.type]: this.getHandler(current),
-        },
-      };
-    }, {});
-  }
-  private getHandler(config: PagicLogConfig): BaseHandler {
-    if (config.type === 'file')
+  private _getHandler(type = 'console', config: PagicLogConfig): BaseHandler | FileHandler {
+    if (type === 'file')
       return new handlers.FileHandler(config.level, {
         filename: config.path + `/Pagic.${config.format === 'json' ? 'json' : 'log'}`,
-        formatter: (logRecord: LogRecord, handler: PagicLogConfig = config) => {
-          let msg = this.message(logRecord, handler);
+        formatter: (logRecord: LogRecord, handler: PagicLogConfig = config, type: 'file' | 'console' = 'file') => {
+          let msg = this._message(logRecord, handler, type);
           if (config.format === 'json')
             return JSON.stringify(
               {
@@ -104,11 +180,12 @@ export default class PagicLogger {
       });
     else
       return new handlers.BaseHandler(config.level, {
-        formatter: (logRecord: LogRecord, handler: PagicLogConfig = config) => this.message(logRecord, handler),
+        formatter: (logRecord: LogRecord, handler: PagicLogConfig = config, type: 'file' | 'console' = 'console') => {
+          return this._message(logRecord, handler, type);
+        },
       });
   }
-  private message(logRecord: LogRecord, handler: PagicLogConfig) {
-    // console.log('in message');
+  private _message(logRecord: LogRecord, handler: PagicLogConfig, type: 'file' | 'console' = 'console') {
     let msg = '';
     let consoleMsg = '';
     if (handler.color) {
@@ -118,6 +195,7 @@ export default class PagicLogger {
         let notColored = logRecord.msg.split(' ').slice(1).join(' ');
         if (logRecord.levelName === 'CRITICAL') {
           msg = `\x1b[1m${colored}\x1b[22m${notColored.length > 0 ? ' ' + notColored : ''}`;
+          // @ts-ignore
           consoleMsg = `[\x1b[1m${colors[logColors[logRecord.levelName]](this.name)}\x1b[22m] ${msg}`;
         } else {
           msg = `${colored}${notColored.length > 0 ? ' ' + notColored : ''}`;
@@ -128,9 +206,10 @@ export default class PagicLogger {
         msg = logRecord.msg;
         consoleMsg = `[${this.name}] ${msg}`;
       }
-      if (handler.type === 'console') console.log(consoleMsg);
+      if (type === 'console') console.log(consoleMsg);
     } else msg = logRecord.msg;
     if (handler.format === 'function')
+      // @ts-ignore
       logRecord.args.forEach((arg, index) => {
         msg += `, arg${index}: ${arg}`;
       });
