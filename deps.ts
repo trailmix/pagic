@@ -6,7 +6,8 @@ export {
   handlers as loggerHandlers,
 } from 'https://deno.land/std@0.84.0/log/mod.ts';
 export type { BaseHandler, FileHandler } from 'https://deno.land/std@0.84.0/log/handlers.ts';
-export type { LogRecord } from 'https://deno.land/std@0.84.0/log/logger.ts';
+export { getLevelByName } from 'https://deno.land/std@0.84.0/log/levels.ts';
+export { LogRecord } from 'https://deno.land/std@0.84.0/log/logger.ts';
 export * as fs from 'https://deno.land/std@0.84.0/fs/mod.ts';
 export * as path from 'https://deno.land/std@0.84.0/path/mod.ts';
 export * as colors from 'https://deno.land/std@0.84.0/fmt/colors.ts';

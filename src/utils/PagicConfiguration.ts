@@ -1,6 +1,6 @@
 // import type { default as Pagic } from '../Pagic.ts';
 import type { CliffyCommandOptions } from '../../mod.ts';
-import { default as PagicLogger } from './PagicLogger.ts';
+import { default as PagicLogger, LogLevels } from './PagicLogger.ts';
 import type { LogLevel, LogFormat } from './PagicLogger.ts';
 import type { React } from '../../deps.ts';
 import {
@@ -244,8 +244,10 @@ export interface PagicBaseConfig {
   theme: string;
   plugins: string[];
 }
+export interface PagicLogConfigMap {
+  [key: string]: PagicLogConfig;
+}
 export interface PagicLogConfig {
-  type: 'file' | 'console';
   level: LogLevel;
   format: LogFormat;
   path?: string;
@@ -308,68 +310,109 @@ export interface PagicPluginsConfig {
 
 // #endregion
 export default class PagicConfiguration {
-  public static cmd: PagicCommand = {
-    env: {
-      PAGIC_LOG_PATH: Deno.env.get('PAGIC_LOG_PATH'),
-      PAGIC_LOG_LEVEL: Deno.env.get('PAGIC_LOG_LEVEL') as LogLevel,
-      PAGIC_LOG_FORMAT: Deno.env.get('PAGIC_LOG_FORMAT') as LogFormat,
-      PAGIC_CONSOLE_LEVEL: Deno.env.get('PAGIC_CONSOLE_LEVEL') as LogLevel,
-      PAGIC_CONSOLE_COLOR: Deno.env.get('PAGIC_CONSOLE_COLOR'),
-      PAGIC_CONSOLE_FORMAT: Deno.env.get('PAGIC_CONSOLE_FORMAT') as LogFormat,
-      PAGIC_SOURCE_DIR: Deno.env.get('PAGIC_SOURCE_DIR'),
-    },
-    build: {
-      serve: false,
-      port: 8000,
-      watch: false,
-    },
-    init: {
-      site: false,
-      theme: false,
-      plugin: false,
-    },
-  };
+  public static get cmd(): PagicCommand {
+    return {
+      env: {
+        PAGIC_LOG_PATH: Deno.env.get('PAGIC_LOG_PATH'),
+        PAGIC_LOG_LEVEL: Deno.env.get('PAGIC_LOG_LEVEL') as LogLevel,
+        PAGIC_LOG_FORMAT: Deno.env.get('PAGIC_LOG_FORMAT') as LogFormat,
+        PAGIC_CONSOLE_LEVEL: Deno.env.get('PAGIC_CONSOLE_LEVEL') as LogLevel,
+        PAGIC_CONSOLE_COLOR: Deno.env.get('PAGIC_CONSOLE_COLOR'),
+        PAGIC_CONSOLE_FORMAT: Deno.env.get('PAGIC_CONSOLE_FORMAT') as LogFormat,
+        PAGIC_SOURCE_DIR: Deno.env.get('PAGIC_SOURCE_DIR'),
+      },
+      build: {
+        serve: false,
+        port: 8000,
+        watch: false,
+      },
+      init: {
+        site: false,
+        theme: false,
+        plugin: false,
+      },
+    };
+  }
+  public get cmd(): PagicCommand {
+    return Object.assign(PagicConfiguration.cmd, this._config.cmd);
+  }
+  public set cmd(cmd: PagicCommand) {
+    this._config.cmd = Object.assign(PagicConfiguration.cmd, cmd);
+  }
   // @ts-ignore
-  public static log: PagicLogConfig[] = (PagicConfiguration.cmd.env.PAGIC_LOG_PATH !== undefined
-    ? [
-        {
-          type: 'file',
-          level: PagicConfiguration.cmd.env.PAGIC_LOG_LEVEL ?? 'DEBUG',
-          format: PagicConfiguration.cmd.env.PAGIC_LOG_FORMAT ?? 'json',
-          path: PagicConfiguration.cmd.env.PAGIC_LOG_PATH,
-        },
-      ]
-    : []
-  ).concat({
-    type: 'console',
-    level: PagicConfiguration.cmd.env.PAGIC_CONSOLE_LEVEL ?? 'DEBUG',
-    format: PagicConfiguration.cmd.env.PAGIC_CONSOLE_FORMAT ?? 'string',
-    color: PagicConfiguration.cmd.env.PAGIC_CONSOLE_COLOR?.toString() === 'false' ? false : true,
-  });
-  public static base: PagicBaseConfig = {
-    srcDir: PagicConfiguration.cmd.env.PAGIC_SOURCE_DIR ?? '.',
-    outDir: 'dist',
-    include: undefined,
-    exclude: [
-      // Dot files
-      '**/.*',
-      // Node common files
-      '**/package.json',
-      '**/package-lock.json',
-      '**/node_modules',
-      'pagic.config.ts',
-      'pagic.config.tsx',
-      // https://docs.npmjs.com/using-npm/developers.html#keeping-files-out-of-your-package
-      '**/config.gypi',
-      '**/CVS',
-      '**/npm-debug.log',
-
-      // ${config.outDir} will be added later
-    ],
-    root: '/',
-    theme: 'default',
-    plugins: ['clean', 'init', 'md', 'tsx', 'script', 'layout', 'out'],
+  public static log: PagicLogConfigMap = {
+    ...(PagicConfiguration.cmd.env.PAGIC_LOG_PATH !== undefined
+      ? {
+          file: {
+            level: PagicConfiguration.cmd.env.PAGIC_LOG_LEVEL ?? 'ERROR',
+            format: PagicConfiguration.cmd.env.PAGIC_LOG_FORMAT ?? 'json',
+            path: PagicConfiguration.cmd.env.PAGIC_LOG_PATH,
+          },
+        }
+      : {}),
+    ...{
+      console: {
+        level: PagicConfiguration.cmd.env.PAGIC_CONSOLE_LEVEL ?? 'ERROR',
+        format: PagicConfiguration.cmd.env.PAGIC_CONSOLE_FORMAT ?? 'string',
+        color: PagicConfiguration.cmd.env.PAGIC_CONSOLE_COLOR?.toString() === 'false' ? false : true,
+      },
+    },
   };
+  public get log(): PagicLogConfigMap {
+    return this._log;
+  }
+  // public set log(config: PagicLogConfigMap) {
+  //   this._log = Object.assign(PagicConfiguration.log, this._log, config);
+  // }
+  public static get base(): PagicBaseConfig {
+    return {
+      srcDir: PagicConfiguration.cmd.env.PAGIC_SOURCE_DIR ?? '.',
+      outDir: 'dist',
+      include: undefined,
+      exclude: [
+        // Dot files
+        '**/.*',
+        // Node common files
+        '**/package.json',
+        '**/package-lock.json',
+        '**/node_modules',
+        'pagic.config.ts',
+        'pagic.config.tsx',
+        // https://docs.npmjs.com/using-npm/developers.html#keeping-files-out-of-your-package
+        '**/config.gypi',
+        '**/CVS',
+        '**/npm-debug.log',
+
+        // ${config.outDir} will be added later
+      ],
+      root: '/',
+      theme: 'default',
+      plugins: ['clean', 'init', 'md', 'tsx', 'script', 'layout', 'out'],
+    };
+  }
+  public get base(): PagicBaseConfig {
+    return Object.assign(PagicConfiguration.base, this._config.base);
+  }
+  public set base(config: PagicBaseConfig) {
+    this._config.base = Object.assign(PagicConfiguration.base, config);
+  }
+  public static get config(): PagicConfig {
+    return {
+      ...PagicConfiguration.base,
+      cmd: PagicConfiguration.cmd,
+      // ...PagicConfiguration.log,
+      // ...this._theme,
+      // ...this._plugins,
+    };
+  }
+  public get config(): PagicConfig {
+    return Object.assign(PagicConfiguration.config, {
+      ...this.base,
+      cmd: this.cmd,
+      ...this._theme,
+      ...this._plugins,
+    });
+  }
   public pagicConfigPath = '';
   public runtimeConfig: Partial<PagicConfig> = {};
   public projectConfig: Partial<PagicConfig> = {};
@@ -378,15 +421,7 @@ export default class PagicConfiguration {
   public layoutPaths: string[] = [];
   public staticPaths: string[] = [];
   public pagePropsMap: Record<string, PageProps> = {};
-  public get config(): PagicConfig {
-    return {
-      ...PagicConfiguration.base,
-      cmd: PagicConfiguration.cmd,
-      ...PagicConfiguration.log,
-      ...this._theme,
-      ...this._plugins,
-    };
-  }
+  private _config: Partial<PagicConfig> = {};
   // public set config(config: PagicConfig) {
   //   this.cmd = config.cmd;
   //   this.base = config.base;
@@ -394,6 +429,7 @@ export default class PagicConfiguration {
   //   this._plugins = config._plugins;
   // }
   // private logger: Promise<PagicLogger> = new PagicLogger().init('PagicConfiguration');
+  private _log: PagicLogConfigMap = PagicConfiguration.log;
   private _theme: PagicThemeConfig = {};
   private _plugins: PagicPluginsConfig = {};
 
@@ -406,8 +442,10 @@ export default class PagicConfiguration {
     //   this.initPaths();
     //   l.success('inited');
     // });
-    this.merge(cmd);
-    this.initPaths();
+    if (cmd !== {}) {
+      this.merge(cmd);
+      this.initPaths();
+    }
   }
   /* Merges a default config, constructor config, and command line options into a single configuration object */
   // eslint-disable-next-line max-params
@@ -431,23 +469,82 @@ export default class PagicConfiguration {
       const branch = await getGitBranch();
       this._theme.branch = branch;
     }
-    PagicConfiguration.base = {
-      ...PagicConfiguration.base,
-      // ...this.projectConfig.base,
-      //   ...config.base,
-      //   ...{
-      //     srcDir: config.base.srcDir ?? this.base.srcDir,
-      //     include: unique([config.base.include ?? this.projectConfig.base?.include]),
-      //     exclude: unique([config.base.exclude ?? this.projectConfig.base?.exclude]),
-      //     _plugins: unique([config.base._plugins ?? this.projectConfig.base?._plugins]),
-      //   },
-      ...cmd,
+    // console.log(JSON.stringify(cmd));
+    this._log = {
+      ...{
+        ...(cmd.logPath !== undefined
+          ? {
+              file: {
+                level: (cmd.logPath as LogLevel) ?? PagicConfiguration.log.file?.level,
+                format: (cmd.logLevel as LogFormat) ?? PagicConfiguration.log.file?.format,
+                path: (cmd.logFormat as string) ?? PagicConfiguration.log.file?.path,
+              },
+            }
+          : {}),
+        ...{
+          console: {
+            level: (cmd.consoleLevel as LogLevel) ?? PagicConfiguration.log.console?.level,
+            format: (cmd.consoleFormat as LogFormat) ?? PagicConfiguration.log.console?.format,
+            color: (cmd.consoleColor as boolean) ?? PagicConfiguration.log.console?.color,
+          },
+        },
+      },
     };
+    // console.log(JSON.stringify(this._log));
+    // console.log(
+    //   JSON.stringify({
+    //     ...PagicConfiguration.log,
+    //     ...{
+    //       ...(cmd.logPath !== undefined
+    //         ? {
+    //             file: {
+    //               level: cmd.logPath,
+    //               format: cmd.logLevel,
+    //               path: cmd.logFormat,
+    //             },
+    //           }
+    //         : {}),
+    //       ...{
+    //         console: {
+    //           level: cmd.consoleLevel,
+    //           format: cmd.consoleFormat,
+    //           color: cmd.consoleColor,
+    //         },
+    //       },
+    //     },
+    //   }),
+    // );
+    // this._log = {
+    //   ...PagicConfiguration.log,
+    //   ...{
+    //     ...(cmd.logPath !== undefined
+    //       ? {
+    //           file: {
+    //             level: cmd.logPath,
+    //             format: cmd.logLevel,
+    //             path: cmd.logFormat,
+    //           },
+    //         }
+    //       : {}),
+    //     ...{
+    //       console: {
+    //         level: cmd.consoleLevel,
+    //         format: cmd.consoleFormat,
+    //         color: cmd.consoleColor,
+    //       },
+    //     },
+    //   },
+    // };
+    // console.log(JSON.stringify(PagicConfiguration.log));
+    // console.log(JSON.stringify(this._log));
+    // this.base = {
+    //   srcDir: cmd.srcDir,
+    // };
     this._theme = {
       ...this._theme,
       // ...this.projectConfig._theme,
     };
-    return this.config;
+    return this;
   }
   public async runPlugins(pagic: PagicConfig) {
     if (this.pagePaths.length === 0 && this.staticPaths.length === 0) return;
