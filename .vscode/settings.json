@@ -1,16 +1,27 @@
 {
   "files.eol": "\n",
+  "deno.enable": true,
   "deno.codeLens.implementations": true,
   "deno.codeLens.references": true,
   "deno.codeLens.referencesAllFunctions": true,
-  "typescript.referencesCodeLens.enabled": true,
-  "typescript.suggestionActions.enabled": true,
+  "deno.suggest.autoImports": true,
+  "deno.suggest.names": true,
+  "deno.suggest.completeFunctionCalls": true,
+  "deno.suggest.paths": true,
+  // "deno.config": "./tsconfig.json",
+  "deno.importMap": "./import_map.json",
+  "coverage-gutters.lcovname": "./coverage/lcov.info",
+  "coverage-gutters.showLineCoverage": true,
+  "coverage-gutters.showRulerCoverage": false,
+  "coverage-gutters.showGutterCoverage": false,
+  // "typescript.referencesCodeLens.enabled": true,
+  // "typescript.suggestionActions.enabled": true,
   "editor.snippetSuggestions": "inline",
-  "typescript.implementationsCodeLens.enabled": true,
-  "vsintellicode.typescript.completionsEnabled": true,
+  // "typescript.implementationsCodeLens.enabled": true,
+  // "vsintellicode.typescript.completionsEnabled": true,
   "typescript.suggest.completeJSDocs": true,
-  "typescript.suggest.completeFunctionCalls": true,
-  "typescript.referencesCodeLens.showOnAllFunctions": true,
+  // "typescript.suggest.completeFunctionCalls": true,
+  // "typescript.referencesCodeLens.showOnAllFunctions": true,
   "editor.tabSize": 2,
   // 保存时自动格式化
   "editor.formatOnSave": true,
@@ -20,9 +31,9 @@
   "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
   "editor.codeActionsOnSave": {
     // 保存时自动修复 ESLint 错误
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": true,
+    "source.organizeImports.eslint": true
   },
   // 使用项目的 ts 版本
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "deno.enable": true
+  "typescript.tsdk": "node_modules/typescript/lib"
 }
