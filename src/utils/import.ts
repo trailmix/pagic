@@ -1,8 +1,8 @@
 import { path } from '../../deps.ts';
 
 import { pagicRootPath } from './filepath.ts';
-import type { PagicPlugin, PagicThemeConfig } from '../Pagic.ts';
-
+import type { PagicPlugin, PagicThemeConfig } from '../utils/PagicConfiguration.ts';
+import { REGEXP_PAGIC_THEMES } from './mod.ts';
 const importCache: Record<string, any> = {};
 
 interface ImportOptions {
@@ -31,7 +31,7 @@ export async function importPlugin(pluginName: string) {
 export async function importTheme(theme: string, themeFile?: string) {
   if (/^https?:\/\//.test(theme)) {
     return await importDefault<PagicThemeConfig>(themeFile ? theme.replace(/\/[^\/]+$/, `/${themeFile}`) : theme);
-  } else {
+  } else if (REGEXP_PAGIC_THEMES.test(theme)) {
     return await importPagicModDefault<PagicThemeConfig>(`src/themes/${theme}/${themeFile ?? 'mod.ts'}`);
   } else {
     return await importDefault<PagicThemeConfig>(`../../${theme}/${themeFile ? themeFile : 'mod.ts'}`);

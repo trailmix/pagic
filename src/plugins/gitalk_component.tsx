@@ -1,15 +1,5 @@
 import { React, ReactDOM } from '../../deps.ts';
-
-export interface GitalkProps {
-  clientID: string;
-  clientSecret: string;
-  repo: string;
-  owner: string;
-  admin: string[];
-  pagerDirection: 'last' | 'first';
-  id?: string;
-  title?: string;
-}
+import type { GitalkProps } from '../Pagic.ts';
 
 const Gitalk = (props: GitalkProps) => {
   React.useEffect(() => {

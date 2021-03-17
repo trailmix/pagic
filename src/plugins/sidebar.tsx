@@ -1,27 +1,6 @@
-import type { PagicPlugin } from '../Pagic.ts';
+import type { Pagic, OnePagicConfigSidebar, PagicPlugin, PagePropsSidebar } from '../Pagic.ts';
 // eslint-disable-next-line no-duplicate-imports
-import type Pagic from '../Pagic.ts';
 import { path } from '../../deps.ts';
-
-export type PagicConfigSidebar = Record<string, OnePagicConfigSidebar>;
-
-export type OnePagicConfigSidebar = (
-  | {
-      text?: string;
-      link?: string;
-      children?: OnePagicConfigSidebar;
-      expanded?: boolean;
-    }
-  | string
-)[];
-
-export type PagePropsSidebar = {
-  text: string;
-  link?: string;
-  pagePath?: string;
-  expanded?: boolean;
-  children?: PagePropsSidebar;
-}[];
 
 const sidebar: PagicPlugin = {
   name: 'sidebar',

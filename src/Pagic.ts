@@ -1,390 +1,161 @@
-import type { React } from '../deps.ts';
-// eslint-disable-next-line no-duplicate-imports
-import { fs, path, colors } from '../deps.ts';
-
-import {
-  pick,
-  unique,
-  sortByInsert,
-  importDefault,
-  logger,
-  walk,
-  getPagicConfigPath,
-  importPlugin,
-  importTheme,
-  serve,
-  getGitBranch,
-} from './utils/mod.ts';
-import type { PagePropsSidebar, PagicConfigSidebar } from './plugins/sidebar.tsx';
-import type { PagePropsBlog } from './plugins/blog.tsx';
-import type { GaProps } from './plugins/ga_component.tsx';
-import type { GitalkProps } from './plugins/gitalk_component.tsx';
-
-// #region types
-export interface PagicConfig {
-  // base
-  srcDir: string;
-  outDir: string;
-  include?: string[];
-  exclude?: string[];
-  root: string;
-  theme: string;
-  plugins: string[];
-  watch: boolean;
-  serve: boolean;
-  port: number;
-
-  // theme config
-  title?: string;
-  description?: string;
-  head?: React.ReactElement | null;
-  github?: string;
-  tocAd?: React.ReactElement;
-  tools?: {
-    editOnGitHub: boolean;
-    backToTop: boolean;
-  };
-  branch?: string;
-
-  // plugins
-  nav?: {
-    text: string;
-    link: string;
-    icon?: string;
-    target?: '_blank' | string;
-    popover?: React.ReactElement;
-    align?: 'left' | 'right';
-  }[];
-  sidebar?: PagicConfigSidebar;
-  md?: {
-    anchorLevel?: (1 | 2 | 3 | 4 | 5 | 6)[];
-    tocEnabled?: boolean;
-    tocLevel?: (1 | 2 | 3 | 4 | 5 | 6)[];
-  };
-  ga?: GaProps;
-  gitalk?: GitalkProps;
-  blog?: {
-    root: string;
-    social?: {
-      github: string;
-      email: string;
-      twitter: string;
-      v2ex: string;
-      zhihu: string;
-    };
-  };
-  i18n?: {
-    languages: { code: string; name: string; root: string }[];
-    overrides?: Record<string, any>;
-    resources?: Record<string, { translation: Record<string, string> }>;
-  };
-
-  [key: string]: any;
-}
-
-export interface PagicThemeConfig {
-  files: [];
-}
-
-export interface PagicPlugin {
-  name: string;
-  insert?: string;
-  fn: (ctx: Pagic) => Promise<void>;
-}
-
-export type PagicLayout<T = Record<string, any>> = React.FC<PageProps & T>;
-
-export interface PageProps {
-  // md
-  title: string;
-  content: React.ReactElement | null;
-  contentTitle?: React.ReactElement;
-  contentBody?: React.ReactElement;
-  toc?: React.ReactElement | null;
-  author?: string;
-  contributors?: string[];
-  date?: Date | string;
-  updated?: Date | string | null;
-  excerpt?: string;
-  cover?: string;
-  tags?: string[];
-  categories?: string[];
-
-  // init
-  config: PagicConfig;
-  pagePath: string;
-  layoutPath: string;
-  outputPath: string;
-  head: React.ReactElement | null;
-  script: React.ReactElement | null;
-
-  // script
-  loading?: boolean;
-
-  // other plugins
-  sidebar?: PagePropsSidebar;
-  prev?: PagePropsSidebar[0];
-  next?: PagePropsSidebar[0];
-  ga?: React.ReactElement;
-  gitalk?: React.ReactElement;
-  blog?: PagePropsBlog;
-  language?: { code: string; name: string; root: string };
-
-  [key: string]: any;
-}
-// #endregion
-
-export default class Pagic {
+// import type { logLevel } from '../mod.ts';
+// import type { React } from '../deps.ts';
+import { colors, fs, Confirm } from 'Pagic/deps.ts';
+import { serve, PagicWatcherFactory, PagicConfiguration } from 'PagicUtils/mod.ts';
+import type { PagicLogger, PagicConfig, CliffyCommandOptions } from 'PagicUtils/mod.ts';
+// export { PagicConfig } from './utils/PagicConfigure.ts';
+// import { default as PagicWatcherFactory } from './utils/PagicWatcherFactory.ts';
+// import type { PagicConfig } from './utils/PagicConfiguration.ts';
+// import { default as PagicConfiguration } from './utils/PagicConfiguration.ts';
+// export type {
+//   GaProps,
+//   GitalkProps,
+//   PagePropsSidebar,
+//   PagicConfigSidebar,
+//   OnePagicConfigSidebar,
+//   PagePropsBlog,
+//   PagicLayout,
+//   PageProps,
+//   PagicConfigInterface,
+//   PagicEnvironment,
+//   PagicInitCommandConfig,
+//   PagicBuildCommandConfig,
+//   CliffyCommandOptions,
+// } from './mod.ts';
+// import type { CliffyCommandOptions } from '../mod.ts';
+// export type { Pagic } from './mod.ts';
+export default class Pagic extends PagicConfiguration {
   // #region properties
-  public static defaultConfig: PagicConfig = {
-    srcDir: '.',
-    outDir: 'dist',
-    include: undefined,
-    exclude: [
-      // Dot files
-      '**/.*',
-      // Node common files
-      '**/package.json',
-      '**/package-lock.json',
-      '**/node_modules',
-      'pagic.config.ts',
-      'pagic.config.tsx',
-      // https://docs.npmjs.com/using-npm/developers.html#keeping-files-out-of-your-package
-      '**/config.gypi',
-      '**/CVS',
-      '**/npm-debug.log',
-
-      // ${config.outDir} will be added later
-    ],
-    root: '/',
-    theme: 'default',
-    plugins: ['clean', 'init', 'md', 'tsx', 'script', 'layout', 'out'],
-    watch: false,
-    serve: false,
-    port: 8000,
-  };
-  // foo.md
-  public static REGEXP_PAGE = /[\/\\][^_][^\/\\]*\.(md|tsx)$/;
-  // /_layout.tsx /_sidebar.tsx
-  public static REGEXP_LAYOUT = /[\/\\]_[^\/\\]+\.tsx$/;
-
-  // @ts-ignore
-  public pagicConfigPath: string;
+  public rebuilding = true;
   // @ts-ignore
   public config: PagicConfig = {};
-
-  /** Pages that need to be build */
-  public pagePaths: string[] = [];
-  public layoutPaths: string[] = [];
-  public staticPaths: string[] = [];
-  /** Files that need to be write */
-  public writeFiles: Record<string, string> = {};
-  /** A map stored all pageProps */
-  public pagePropsMap: Record<string, PageProps> = {};
-  public rebuilding = true;
-
-  public projectConfig: Partial<PagicConfig> = {};
-  private runtimeConfig: Partial<PagicConfig> = {};
-
-  private changedPaths: string[] = [];
-  private timeoutHandler: number | undefined = undefined;
+  // @ts-ignore
+  public logger: PagicLogger = {};
+  // @ts-ignore
+  private watchers: PagicWatcherFactory = {};
+  // private _config: PagicConfigure = {};
   // #endregion
 
-  public constructor(config: Partial<PagicConfig> = {}) {
-    this.runtimeConfig = config;
+  public constructor(config: Partial<PagicConfig> = {}, cmd: CliffyCommandOptions = {}) {
+    // pagic configure should be init'ed here and default name created
+    // configure process will utilize default name until it parses config
+    // then it will hand the name over to pagic here
+    // this.name = await config.logger;
+    // pull in PagicConfigure
+    super(cmd);
+    // this.console.log(config);
+    // this._config = config;
+    // this.config = config._config;
+    // console.log(env);
+    // this.runtimeConfig = options;
+    // const logger = await new PagicLogger(defaultEnv).init();
+    // this.name = new PagicLogger({
+    //   logPath: defaultConfig.env?.PAGIC_LOG_PATH ?? defaultConfig.cmd?.pagic.logPath,
+    //   logLevel: defaultConfig.env?.PAGIC_LOG_LEVEL ?? defaultConfig.cmd?.pagic.logLevel,
+    //   logFormat: defaultConfig.env?.PAGIC_LOG_FORMAT ?? defaultConfig.cmd?.pagic.logFormat,
+    //   consoleLevel: defaultConfig.env?.PAGIC_CONSOLE_LEVEL ?? defaultConfig.cmd?.pagic.consoleLevel,
+    //   consoleColor: defaultConfig.env?.PAGIC_CONSOLE_COLOR ?? defaultConfig.cmd?.pagic.consoleColor,
+    //   consoleFormat: defaultConfig.env?.PAGIC_CONSOLE_FORMAT ?? defaultConfig.cmd?.pagic.consoleFormat,
+    // });
+    // this.name.init();
   }
-
+  public async start() {
+    this.logger = await this.config.l;
+    this.logger.success('hello from PAGIC');
+  }
   public async build() {
-    await this.rebuild();
+    await this.config.rebuild();
     if (this.config.serve) {
       this.serve();
     }
     if (this.config.watch) {
-      this.watch();
+      await this.watch();
+    }
+  }
+  public async init() {
+    // console.log(this.runtimeConfig);
+    if (this.config.runtimeConfig.init?.site) {
+      if (await fs.exists('pagic.config.ts')) {
+        this.logger.warn('pagic.config.ts already exists, exit');
+        return;
+      }
+      if (await fs.exists('pagic.config.tsx')) {
+        this.logger.warn('pagic.config.tsx already exists, exit');
+        return;
+      }
+      await Deno.writeTextFile('pagic.config.ts', 'export default {};\n');
+    } else if (this.config.runtimeConfig.init?.theme) {
+      if (
+        (await fs.exists('mod.ts')) &&
+        (this.runtimeConfig.init?.overwrite === undefined ? true : !this.runtimeConfig.init?.overwrite)
+      ) {
+        const confirmed = await Confirm.prompt({
+          message: 'mod.ts already exists, do you want to override it?',
+          ...(this.config.runtimeConfig.init?.overwrite === undefined
+            ? {
+                hint: 'You can use --overwrite to make this COMPLETELY autopagic.',
+              }
+            : { hint: 'You can use pagic init [theme|init|plugin] for autopagic completion.' }),
+        });
+        if (!confirmed) {
+          return;
+        }
+      }
+      this.generateThemeMod();
+    } else if (this.config.runtimeConfig.init?.plugin) {
+      this.logger.error(`Plugin generation not implemented.`);
     }
   }
 
-  public async generateThemeMod() {
-    this.config = {
-      ...Pagic.defaultConfig,
-      exclude: [...Pagic.defaultConfig.exclude!, 'mod.ts'],
-    };
+  private async generateThemeMod() {
+    // this.config = {
+    //   ...defaultConfig,
+    //   exclude: [...defaultConfig.exclude!, 'mod.ts'],
+    // };
 
-    await this.initPaths();
+    await this.config.initPaths();
     await Deno.writeTextFile(
       './mod.ts',
-      `export default {\n  files: [\n${[...this.staticPaths, ...this.layoutPaths]
+      `export default {\n  files: [\n${[...this.config.staticPaths, ...this.config.layoutPaths]
         .map((filePath) => `    '${filePath}'`)
         .join(',\n')}\n  ]\n};\n`,
     );
   }
 
-  public getConfig(pagePath?: string) {
-    if (typeof pagePath === 'undefined') {
-      return this.config;
-    }
-    return this.pagePropsMap[pagePath].config;
-  }
-
-  private async rebuild() {
-    this.rebuilding = true;
-    this.pagePropsMap = {};
-    this.writeFiles = {};
-
-    await this.initConfig();
-    await this.initPaths();
-    await this.runPlugins();
-  }
-
-  /** Deep merge defaultConfig, projectConfig and runtimeConfig, then sort plugins */
-  private async initConfig() {
-    this.pagicConfigPath = await getPagicConfigPath();
-    this.projectConfig = await importDefault(this.pagicConfigPath, {
-      reload: true,
+  private async watch() {
+    // watch  pagic.config.ts/x, root project, and potential theme
+    this.watchers = new PagicWatcherFactory(this.config, this.config.pagicConfigPath);
+    await this.watchers.watch(async (status: string, path = '') => {
+      this.logger.success(
+        'watcher',
+        status === 'rebuild' ? 'Rebuilding...' : 'Reloading plugins change to: ',
+        colors.underline(path),
+      );
+      if (status === 'rebuild') {
+        await this.watchers.removeWatchers(); // this could go to rebuild function
+        this.rebuilding = true;
+        await this.config.rebuild();
+        this.rebuilding = false;
+        await this.watchers.init(this.config, this.config.pagicConfigPath); // this could go to rebuild function
+      } else {
+        // @ts-ignore if path not in array, push and reload
+        // if (this[status].indexOf(path) === -1) this[status].push(path);
+        await this.runPlugins().then(() => {
+          this.logger.success('watcher', 'Reloaded Plugins');
+        });
+      }
     });
-    let config = {
-      ...Pagic.defaultConfig,
-      ...this.projectConfig,
-      ...this.runtimeConfig,
-    };
-    if (typeof config.branch === 'undefined') {
-      const branch = await getGitBranch();
-      config.branch = branch;
-    }
-    config.exclude = unique([
-      ...(Pagic.defaultConfig.exclude ?? []),
-      ...(this.projectConfig.exclude ?? []),
-      ...(this.runtimeConfig.exclude ?? []),
-      config.outDir,
-    ]);
-    config.plugins = unique([
-      ...Pagic.defaultConfig.plugins,
-      ...(this.projectConfig.plugins ?? []),
-      ...(this.runtimeConfig.plugins ?? []),
-    ]);
-    this.config = config;
   }
-
   private async serve() {
     serve({
       serveDir: this.config.outDir,
       root: this.config.root,
       port: this.config.port,
     });
-    logger.success(
+    this.logger.success(
       'Serve',
       colors.underline(this.config.outDir),
       `on http://127.0.0.1:${this.config.port}${this.config.root}`,
     );
-  }
-
-  private async watch() {
-    logger.success('Watch', colors.underline(this.config.srcDir));
-    const watcher = Deno.watchFs([this.config.srcDir, this.pagicConfigPath]);
-    for await (const event of watcher) {
-      // pagic.config.ts modified, rebuild
-      if (event.kind === 'modify' && event.paths.includes(this.pagicConfigPath)) {
-        clearTimeout(this.timeoutHandler);
-        this.timeoutHandler = setTimeout(async () => {
-          this.rebuild();
-        }, 100);
-        continue;
-      }
-      let eventPaths = event.paths.map((eventPath) => path.relative(this.config.srcDir, eventPath));
-      this.config.include?.forEach((glob) => {
-        eventPaths = eventPaths.filter(
-          (eventPath) => path.globToRegExp(glob).test(eventPath) || path.globToRegExp(`${glob}/**`).test(eventPath),
-        );
-      });
-      this.config.exclude?.forEach((glob) => {
-        eventPaths = eventPaths.filter(
-          (eventPath) => !path.globToRegExp(glob).test(eventPath) && !path.globToRegExp(`${glob}/**`).test(eventPath),
-        );
-      });
-      this.handleFileChange(eventPaths);
-    }
-  }
-
-  private async handleFileChange(filePaths: string[]) {
-    if (filePaths.length === 0) return;
-    this.changedPaths = unique([...this.changedPaths, ...filePaths]);
-    clearTimeout(this.timeoutHandler);
-    this.timeoutHandler = setTimeout(async () => {
-      this.rebuilding = false;
-      this.pagePaths = [];
-      this.staticPaths = [];
-      for (const changedPath of this.changedPaths) {
-        const fullChangedPath = path.resolve(this.config.srcDir, changedPath);
-        if (!fs.existsSync(fullChangedPath)) {
-          logger.warn(`${changedPath} removed, start rebuild`);
-          this.rebuilding = true;
-          break;
-        } else if (Deno.statSync(fullChangedPath).isDirectory) {
-          logger.warn(`Directory ${colors.underline(changedPath)} changed, start rebuild`);
-          this.rebuilding = true;
-          break;
-        } else if (Pagic.REGEXP_LAYOUT.test(fullChangedPath)) {
-          logger.warn(`Layout ${changedPath} changed, start rebuild`);
-          this.rebuilding = true;
-          break;
-        } else if (Pagic.REGEXP_PAGE.test(fullChangedPath)) {
-          this.pagePaths.push(changedPath);
-        } else {
-          this.staticPaths.push(changedPath);
-        }
-      }
-      if (this.rebuilding) {
-        await this.rebuild();
-      } else {
-        await this.runPlugins();
-      }
-      this.changedPaths = [];
-    }, 100);
-  }
-
-  private async initPaths() {
-    const { files: themeFiles } = await importTheme(this.config.theme);
-
-    this.pagePaths = await walk(this.config.srcDir, {
-      ...pick(this.config, ['include', 'exclude']),
-      match: [Pagic.REGEXP_PAGE],
-    });
-    this.layoutPaths = unique([
-      ...(await walk(this.config.srcDir, {
-        ...pick(this.config, ['include', 'exclude']),
-        match: [Pagic.REGEXP_LAYOUT],
-      })),
-      ...themeFiles.filter((filename) => Pagic.REGEXP_LAYOUT.test(`/${filename}`)),
-    ]).sort();
-    this.staticPaths = unique([
-      ...(await walk(this.config.srcDir, {
-        ...pick(this.config, ['include', 'exclude']),
-        skip: [Pagic.REGEXP_PAGE, Pagic.REGEXP_LAYOUT],
-      })),
-      ...themeFiles.filter(
-        (filename) => !Pagic.REGEXP_PAGE.test(`/${filename}`) && !Pagic.REGEXP_LAYOUT.test(`/${filename}`),
-      ),
-    ]).sort();
-  }
-
-  private async runPlugins() {
-    if (this.pagePaths.length === 0 && this.staticPaths.length === 0) return;
-
-    let sortedPlugins: PagicPlugin[] = [];
-    for (let pluginName of this.config.plugins) {
-      if (pluginName.startsWith('-')) {
-        continue;
-      }
-      let plugin = await importPlugin(pluginName);
-      sortedPlugins.push(plugin);
-    }
-    sortedPlugins = sortByInsert(sortedPlugins);
-    const removedPlugins = this.config.plugins.filter((pluginName) => pluginName.startsWith('-'));
-    sortedPlugins = sortedPlugins.filter((plugin) => !removedPlugins.includes(`-${plugin.name}`));
-
-    for (let plugin of sortedPlugins) {
-      logger.success('Plugin', plugin.name, 'start');
-      await plugin.fn(this);
-    }
   }
 }

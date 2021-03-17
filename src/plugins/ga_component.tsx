@@ -1,9 +1,5 @@
 import { React } from '../../deps.ts';
-
-export interface GaProps {
-  id: string;
-}
-
+import type { GaProps } from '../Pagic.ts';
 declare global {
   interface Window {
     ga: any;

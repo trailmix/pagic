@@ -1,29 +1,4 @@
-import type { PagicPlugin } from '../Pagic.ts';
-
-export interface PagePropsBlog {
-  isPost: boolean;
-  posts: {
-    pagePath: string;
-    title: string;
-    link: string;
-    date: Date | string;
-    updated: Date | string;
-    author?: string;
-    contributors: string[];
-    categories?: string[];
-    tags?: string[];
-    excerpt?: string;
-    cover?: string;
-  }[];
-  categories: {
-    name: string;
-    count: number;
-  }[];
-  tags: {
-    name: string;
-    count: number;
-  }[];
-}
+import type { PagicPlugin, PagePropsBlog } from '../Pagic.ts';
 
 const blog: PagicPlugin = {
   name: 'blog',

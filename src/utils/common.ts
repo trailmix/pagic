@@ -1,5 +1,16 @@
 import { fs, path, colors } from '../../deps.ts';
 
+export const REGEXP_PAGE = /[\/\\][^_][^\/\\]*\.(md|tsx)$/;
+export const REGEXP_LAYOUT = /[\/\\]_[^\/\\]+\.tsx$/;
+// list of pagic themes
+export const REGEXP_PAGIC_THEMES = /^(docs|default|blog)+$/;
+// updir = '../'
+export const REGEXP_UPDIR = /^(\.\.\/){1}([a-zA-Z0-9_\\\/-])*(\/){1}/;
+// checks if the directory is a hidden updir
+// hidden = '/.github/'
+// hidden updir = '../.github/'
+export const REGEXP_HIDDEN_UPDIR = /^(\.\.\/){1}([a-zA-Z0-9_\\\/-])*(\/\.){1}/;
+
 // #region Common types
 export type AnyFunction = (...args: any[]) => any;
 export type Tree<T = any> = T & {
@@ -61,6 +72,13 @@ export function underline(strings: string | string[], delimiter = ' | ') {
         })
       : colors.underline('');
   } else return colors.underline(strings);
+}
+
+enum logLevel {
+  'info' = 0,
+  'warn' = 1,
+  'success' = 2,
+  'error' = 3,
 }
 
 export const logger = {

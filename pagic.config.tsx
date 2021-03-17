@@ -3,7 +3,7 @@
 export default {
   srcDir: 'pagic.org',
   theme: 'docs',
-  plugins: ['sidebar', 'prev_next', 'i18n', 'blog', 'ga'],
+  plugins: ['sidebar', 'prev_next', 'blog', 'ga'],
   title: 'Pagic',
   description: 'A static site generator powered by Deno + React',
   // head: (

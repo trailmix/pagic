@@ -1,6 +1,7 @@
 import type { LogLevel } from 'PagicUtils/mod.ts';
 
 export enum strings {
+  ansi_reset = '\x1b[0m',
   bold_prefix = '\x1b[1m',
   bold_suffix = '\x1b[22m',
   underline_prefix = '\x1b[4m',

@@ -1,4 +1,4 @@
-import { path, React } from '../../deps.ts';
+import { path, React, ReactDOM } from '../../deps.ts';
 
 import type { PagicPlugin } from '../Pagic.ts';
 import { import_ } from '../utils/mod.ts';

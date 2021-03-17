@@ -1,7 +1,8 @@
-import { fs, path } from '../../deps.ts';
+import * as path from 'path/mod.ts';
+import { fs } from 'Pagic/deps.ts';
+import type { PagicConfig } from 'PagicUtils/mod.ts';
 
-import type { PagicConfig } from '../Pagic.ts';
-
+// path.resolve(path.fromFileUrl(import.meta.url) / '../../../');
 /**
  * Get the runtime pagic root path, it should be a file-system-path or a url
  * /User/xcatliu/work/github/pagic or https://deno.land/x/pagic
@@ -84,14 +85,17 @@ export function findNearestLayoutPath(pagePath: string, layoutPaths: string[]) {
 /** A util to replace fs.walk method, return relativeToSrcPath instead of fullPath */
 export async function walk(
   srcDir: string,
+  // @ts-ignore
   walkOptions: fs.WalkOptions & Pick<PagicConfig, 'include' | 'exclude'> = {},
 ): Promise<string[]> {
   let { match, skip, include, exclude } = walkOptions;
+  // @ts-ignore
   const includeMatch = include?.reduce<RegExp[]>((prev, glob) => {
     prev.push(path.globToRegExp(`${path.resolve(srcDir)}/${glob}`));
     prev.push(path.globToRegExp(`${path.resolve(srcDir)}/${glob}/**`));
     return prev;
   }, []);
+  // @ts-ignore
   const excludeSkip = exclude?.reduce<RegExp[]>((prev, glob) => {
     prev.push(path.globToRegExp(`${path.resolve(srcDir)}/${glob}`));
     prev.push(path.globToRegExp(`${path.resolve(srcDir)}/${glob}/**`));
@@ -108,6 +112,7 @@ export async function walk(
 
   if (include && match) {
     for await (const i of walkResult) {
+      // @ts-ignore
       if (match.some((regExp) => regExp.test(i.path))) {
         walkPaths.push(path.relative(srcDir, i.path));
       }

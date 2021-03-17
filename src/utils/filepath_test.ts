@@ -10,8 +10,8 @@ import {
   findNearestLayoutPath,
   walk,
 } from './filepath.ts';
-import Pagic from '../Pagic.ts';
-import { REGEXP_PAGE, REGEXP_LAYOUT } from '../../mod.ts';
+// import Pagic from '../Pagic.ts';
+import { REGEXP_PAGE, REGEXP_LAYOUT } from './mod.ts';
 
 Deno.test('[pagicRootPath]', () => {
   asserts.assertEquals(pagicRootPath, path.resolve(path.fromFileUrl(import.meta.url), '../../../'));

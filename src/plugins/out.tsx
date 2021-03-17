@@ -3,7 +3,13 @@ import { fs, path, ReactDOMServer } from '../../deps.ts';
 import Helmet from 'https://cdn.pagic.org/react-helmet@6.1.0/esnext/react-helmet.js';
 
 import type { PagicPlugin } from '../Pagic.ts';
-import { ensureDirAndWriteTextFile, ensureDirAndCopy, copyPagicFile, download } from '../utils/mod.ts';
+import {
+  ensureDirAndWriteTextFile,
+  ensureDirAndCopy,
+  copyPagicFile,
+  download,
+  REGEXP_PAGIC_THEMES,
+} from '../utils/mod.ts';
 
 const out: PagicPlugin = {
   name: 'out',
@@ -38,8 +44,7 @@ const out: PagicPlugin = {
         await ensureDirAndCopy(src, dest, { overwrite: true });
       } else if (/^https?:\/\//.test(pagic.config.theme)) {
         await download(pagic.config.theme.replace(/\/[^\/]+$/, `/${staticPath}`), dest);
-        } else {
-          await copyPagicFile(`src/themes/${pagic.config.theme}/${staticPath}`, dest);
+      } else if (REGEXP_PAGIC_THEMES.test(pagic.config.theme)) {
         await copyPagicFile(`src/themes/${pagic.config.theme}/${staticPath}`, dest);
       } else {
         await ensureDirAndCopy(path.resolve(pagic.config.srcDir, pagic.config.theme, staticPath), dest, {

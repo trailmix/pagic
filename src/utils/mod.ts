@@ -13,6 +13,6 @@ export type { LogLevel, LogFormat } from './PagicLogger.ts';
 export { default as PagicConfiguration } from './PagicConfiguration.ts';
 export { default as PagicWatcher } from './PagicWatcher.ts';
 export { default as PagicWatcherFactory } from './PagicWatcherFactory.ts';
-export { default as PagicLogger } from './PagicLogger.ts';
+export { default as PagicLogger, LogLevels, Loggers } from './PagicLogger.ts';
 export { default as PagicException } from './PagicException.ts';
 // export type { PagicPlugin } from './PagicPlugin.ts';
