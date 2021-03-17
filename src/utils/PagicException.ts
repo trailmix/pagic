@@ -1,5 +1,5 @@
 // import type { PagicMessage } from './PagicLogger.ts';
-export class PagicException {
+export default class PagicException {
   public logger = 'default';
   public level = 1;
   public msg = '';

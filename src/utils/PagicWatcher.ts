@@ -1,6 +1,5 @@
-import { path } from '../../deps.ts';
-import { logger, underline } from './mod.ts';
-import { v4 } from 'https://deno.land/std@0.88.0/uuid/mod.ts';
+import { path, v4 } from 'Pagic/deps.ts';
+import { logger, underline } from 'PagicUtils/mod.ts';
 export default class PagicWatcher {
   // #region properties
   // @ts-ignore

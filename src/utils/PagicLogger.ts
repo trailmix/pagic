@@ -1,10 +1,11 @@
-import { colors, setupLogger, getLogger, loggerHandlers as handlers, LogRecord } from '../../deps.ts';
-import type { Logger, BaseHandler, FileHandler, LoggerConfig } from '../../deps.ts';
-import type { PagicLogConfig, PagicLogConfigMap } from './PagicConfiguration.ts';
-import { default as PagicConfiguration } from './PagicConfiguration.ts';
+import type { PagicLogConfig, PagicLogConfigMap } from 'PagicUtils/mod.ts';
+import type { Logger, BaseHandler, FileHandler, LoggerConfig } from 'Pagic/deps.ts';
+import { PagicConfiguration } from 'PagicUtils/mod.ts';
+import { colors, setupLogger, getLogger, loggerHandlers as handlers, LogRecord } from 'Pagic/deps.ts';
 // #region logging
-export type LogFormat = 'json' | 'function' | 'string';
+export const Loggers = ['default', 'test', 'PagicConfiguration', 'PagicWatcherFactory', 'PagicWatcher', 'Pagic'];
 export const LogLevels = ['NOTSET', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'];
+export type LogFormat = 'json' | 'function' | 'string';
 export type LogLevel = 'NOTSET' | 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
 export interface PagicMessage {
   logger: string;
@@ -34,14 +35,7 @@ enum logColors {
  * l.success('main','_message')
  */
 export default class PagicLogger {
-  private static _loggers: string[] = [
-    'default',
-    'test',
-    'PagicConfiguration',
-    'PagicWatcherFactory',
-    'PagicWatcher',
-    'Pagic',
-  ]; // init static logger list
+  private static _loggers: string[] = Loggers; // init static logger list
   private static _config: PagicLogConfigMap = PagicConfiguration.log; // init static log config
   public name = 'default';
   public logger: Logger = getLogger(); // set logger to default logger

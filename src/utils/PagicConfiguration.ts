@@ -1,8 +1,8 @@
 // import type { default as Pagic } from '../Pagic.ts';
-import type { CliffyCommandOptions } from '../../mod.ts';
-import { default as PagicLogger, LogLevels } from './PagicLogger.ts';
-import type { LogLevel, LogFormat } from './PagicLogger.ts';
-import type { React } from '../../deps.ts';
+// import type { CliffyCommandOptions } from '../../mod.ts';
+// import { default as PagicLogger, LogLevels } from './PagicLogger.ts';
+import type { LogLevel, LogFormat } from 'PagicUtils/mod.ts';
+import type { React } from 'Pagic/deps.ts';
 import {
   REGEXP_PAGE,
   REGEXP_LAYOUT,
@@ -15,7 +15,7 @@ import {
   importPlugin,
   importTheme,
   getGitBranch,
-} from './mod.ts';
+} from 'PagicUtils/mod.ts';
 export interface PagicConfig {
   // cmd
   cmd: PagicCommand;
@@ -208,6 +208,9 @@ export interface PagicEnvironment {
 // #endregion
 // #region commands
 
+export interface CliffyCommandOptions {
+  [key: string]: string | boolean | number | CliffyCommandOptions | undefined;
+}
 /** Configuration pertaining to command input
  */
 export interface PagicCommand {

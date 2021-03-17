@@ -1,4 +1,3 @@
-import { default as PagicWatcher } from './PagicWatcher.ts';
 import {
   REGEXP_PAGE,
   REGEXP_LAYOUT,
@@ -8,10 +7,10 @@ import {
   logger,
   unique,
   underline,
-} from './mod.ts';
-import type { PagicConfig } from './PagicConfiguration.ts';
-import { fs, path, colors } from '../../deps.ts';
-import { v4 } from 'https://deno.land/std@0.88.0/uuid/mod.ts';
+  PagicWatcher,
+} from 'PagicUtils/mod.ts';
+import type { PagicConfig } from 'PagicUtils/mod.ts';
+import { fs, path, colors, v4 } from 'Pagic/deps.ts';
 export default class PagicWatcherFactory {
   // #region properties
   public watchers: Array<PagicWatcher> = [];

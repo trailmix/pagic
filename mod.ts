@@ -1,25 +1,10 @@
 #!/usr/bin/env -S deno --unstable --allow-read --allow-write --allow-net --allow-run --allow-env
-import { default as Pagic } from './src/Pagic.ts';
-// import type { PagicEnvironment } from './src/Pagic.ts';
-import { default as PagicLogger } from './src/utils/PagicLogger.ts';
-// import { default as PagicLoggerFactory } from './src/utils/PagicLoggerFactory.ts';
-import { PagicException } from './src/utils/PagicException.ts';
-// import { default as PagicConfiguration } from './src/utils/PagicConfiguration.ts';
-// import type { CliffyCommandOptions } from './src/types/any.d.ts';
-// import { PagicConfigure, pagicEnv } from './src/utils/PagicConfigure.ts';
-// import type { CliffyCommandOptions } from './src/utils/PagicConfigure.ts';
-// import type { LogLevel } from './src/utils/PagicLogger.ts';
-export interface CliffyCommandOptions {
-  [key: string]: string | boolean | number | CliffyCommandOptions | undefined;
-}
-import { Command, Select, colors } from './deps.ts';
-import type { ITypeInfo } from './deps.ts';
-// import { name } from './src/utils/mod.ts';
-
-// export { React, ReactDOM, ReactDOMServer } from './deps.ts';
-// export { t, Trans } from './src/plugins/i18n.tsx';
-export default Pagic;
-export * from './src/Pagic.ts';
+import type { ITypeInfo } from 'Pagic/deps.ts';
+import type { CliffyCommandOptions } from 'PagicUtils/mod.ts';
+import { Command, Select, colors } from 'Pagic/deps.ts';
+import { PagicLogger, PagicException } from 'PagicUtils/mod.ts';
+import { default as Pagic } from 'Pagic/src/Pagic.ts';
+export { Pagic };
 const initCommandResources = ['theme', 'site', 'plugin'];
 // interface cmdMap {
 //   // base?: Command<any, any> | undefined;

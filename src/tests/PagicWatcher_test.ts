@@ -1,6 +1,5 @@
-import { asserts } from '../../deps.ts';
-import { default as PagicWatcherFactory } from './PagicWatcherFactory.ts';
-import { default as PagicWatcher } from './PagicWatcher.ts';
+import { asserts } from 'Pagic/deps.ts';
+import { PagicWatcherFactory, PagicWatcher } from 'PagicUtils/mod.ts';
 
 const ogConsole = console.log;
 enum strings {
