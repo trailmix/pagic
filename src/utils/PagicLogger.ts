@@ -39,14 +39,15 @@ export default class PagicLogger {
   private static _config: PagicLogConfigMap = PagicConfiguration.log; // init static log config
   public name = 'default';
   public logger: Logger = getLogger(); // set logger to default logger
-  private _config: PagicLogConfigMap = PagicLogger._config;
+  public config: PagicLogConfigMap = PagicLogger._config;
   /** Construct the default logger.
    * @public
    * @constructor
    */
-  public constructor(name = 'default') {
+  public constructor(name = 'default', config: PagicLogConfigMap = PagicLogger._config) {
     this.name = name;
     this.logger = getLogger();
+    this.config = config;
   }
   /** Initialize the loggers and handlers.
    * @public
@@ -54,8 +55,8 @@ export default class PagicLogger {
    * // returns Pagic logger
    * const l = await new PagicLogger().init('Pagic')
    */
-  public async init(name = this.name, config: PagicLogConfigMap = this._config): Promise<PagicLogger> {
-    this._config = config;
+  public async init(name = this.name, config: PagicLogConfigMap = this.config): Promise<PagicLogger> {
+    this.config = config;
     await setupLogger({ handlers: this._handlers, loggers: this._loggers });
     this.name = name;
     this.logger = getLogger(name);
@@ -121,7 +122,7 @@ export default class PagicLogger {
         args: args,
         loggerName: this.name,
       }),
-      this._config.console,
+      this.config.console,
       'console',
     );
   }
@@ -134,7 +135,7 @@ export default class PagicLogger {
     }, {});
   }
   private get _handlers(): { [x: string]: BaseHandler | FileHandler } {
-    return Object.entries(this._config).reduce((prev: any, current: any, i) => {
+    return Object.entries(this.config).reduce((prev: any, current: any, i) => {
       return {
         ...(i === 0 ? {} : prev),
         ...{
