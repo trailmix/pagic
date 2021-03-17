@@ -50,6 +50,22 @@
       "port": 9229,
       "type": "node",
       "outputCapture": "std"
+    },
+    {
+      "name": "test: test_",
+      "request": "launch",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "test",
+        "--unstable",
+        "--inspect",
+        "-A",
+        "--import-map=import_map.json",
+        "src/tests/PagicLogger_test.ts"
+      ],
+      "attachSimplePort": 9229,
+      "type": "pwa-node",
+      "outputCapture": "std"
     }
   ]
 }
