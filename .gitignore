@@ -8,3 +8,7 @@ test/fixtures/test_clean_dir
 test/fixtures/test_i18n_dir
 test/fixtures/test_out_dir
 test/fixtures/test_script_dir
+
+Pagic.log
+Pagic.json
+coverage/**
