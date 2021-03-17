@@ -364,9 +364,6 @@ export default class PagicConfiguration {
   public get log(): PagicLogConfigMap {
     return this._log;
   }
-  // public set log(config: PagicLogConfigMap) {
-  //   this._log = Object.assign(PagicConfiguration.log, this._log, config);
-  // }
   public static get base(): PagicBaseConfig {
     return {
       srcDir: PagicConfiguration.cmd.env.PAGIC_SOURCE_DIR ?? '.',
@@ -446,10 +443,12 @@ export default class PagicConfiguration {
     //   l.success('inited');
     // });
     if (cmd !== {}) {
-      this.merge(cmd);
-      this.initPaths();
+      this._log = this.parseLog(cmd);
+      // this.merge(cmd);
+      // this.initPaths();
     }
   }
+
   /* Merges a default config, constructor config, and command line options into a single configuration object */
   // eslint-disable-next-line max-params
   public async merge(
@@ -472,27 +471,8 @@ export default class PagicConfiguration {
       const branch = await getGitBranch();
       this._theme.branch = branch;
     }
+    this._log = this.parseLog(cmd);
     // console.log(JSON.stringify(cmd));
-    this._log = {
-      ...{
-        ...(cmd.logPath !== undefined
-          ? {
-              file: {
-                level: (cmd.logPath as LogLevel) ?? PagicConfiguration.log.file?.level,
-                format: (cmd.logLevel as LogFormat) ?? PagicConfiguration.log.file?.format,
-                path: (cmd.logFormat as string) ?? PagicConfiguration.log.file?.path,
-              },
-            }
-          : {}),
-        ...{
-          console: {
-            level: (cmd.consoleLevel as LogLevel) ?? PagicConfiguration.log.console?.level,
-            format: (cmd.consoleFormat as LogFormat) ?? PagicConfiguration.log.console?.format,
-            color: (cmd.consoleColor as boolean) ?? PagicConfiguration.log.console?.color,
-          },
-        },
-      },
-    };
     // console.log(JSON.stringify(this._log));
     // console.log(
     //   JSON.stringify({
@@ -567,6 +547,28 @@ export default class PagicConfiguration {
     for (let plugin of sortedPlugins) {
       await plugin.fn(pagic);
     }
+  }
+  private parseLog(cmd: CliffyCommandOptions) {
+    return {
+      ...{
+        ...(cmd.logPath !== undefined
+          ? {
+              file: {
+                level: (cmd.logPath as LogLevel) ?? PagicConfiguration.log.file?.level,
+                format: (cmd.logLevel as LogFormat) ?? PagicConfiguration.log.file?.format,
+                path: (cmd.logFormat as string) ?? PagicConfiguration.log.file?.path,
+              },
+            }
+          : {}),
+        ...{
+          console: {
+            level: (cmd.consoleLevel as LogLevel) ?? PagicConfiguration.log.console?.level,
+            format: (cmd.consoleFormat as LogFormat) ?? PagicConfiguration.log.console?.format,
+            color: (cmd.consoleColor as boolean) ?? PagicConfiguration.log.console?.color,
+          },
+        },
+      },
+    };
   }
   private async initPaths() {
     // @ts-ignore
