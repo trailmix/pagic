@@ -36,12 +36,19 @@ export enum colors {
  * @returns formatted log message
  */
 // eslint-disable-next-line max-params
-export function logString(log: string, level: LogLevel = 'ERROR', logger = 'default', ...args: unknown[]): string {
+export function logString(
+  log: string,
+  level: LogLevel = 'ERROR',
+  logger = 'default',
+  colorMsg = true,
+  ...args: unknown[]
+): string {
   const logColor = colorLog(level, logger);
   const colorSuffix = logColor === '0' ? '0' : strings.color_suffix;
   const bold = level === 'CRITICAL' ? true : false;
   const _log = level === 'NOTSET' && logger === 'test' ? 'deDEBUG:' + log : log;
-  let msg = `[${color(logger, logColor, colorSuffix, bold)}] ${color(_log, logColor, colorSuffix, bold)}`;
+  let msg = `[${logger}] ${_log}`;
+  if (colorMsg) msg = `[${color(logger, logColor, colorSuffix, bold)}] ${color(_log, logColor, colorSuffix, bold)}`;
   // console.log(JSON.stringify(args, null, 2));
   if (args !== null && args !== undefined && args.toString() !== '') {
     // console.log('inside args');

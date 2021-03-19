@@ -13,7 +13,43 @@ export interface PagicMessage {
   level: number;
   msg: string;
 }
-export type Colors = 'white' | 'clear' | 'blue' | 'yellow' | 'red' | 'green';
+export type Colors =
+  | 'black'
+  | 'red'
+  | 'green'
+  | 'yellow'
+  | 'blue'
+  | 'magenta'
+  | 'cyan'
+  | 'white'
+  | 'gray'
+  | 'brightBlack'
+  | 'brightRed'
+  | 'brightGreen'
+  | 'brightYellow'
+  | 'brightBlue'
+  | 'brightMagenta'
+  | 'brightCyan'
+  | 'brightWhite'
+  | 'clear';
+export type bgColors =
+  | 'bgBlack'
+  | 'bgRed'
+  | 'bgGreen'
+  | 'bgYellow'
+  | 'bgBlue'
+  | 'bgMagenta'
+  | 'bgCyan'
+  | 'bgWhite'
+  | 'bgBrightBlack'
+  | 'bgBrightRed'
+  | 'bgBrightGreen'
+  | 'bgBrightYellow'
+  | 'bgBrightBlue'
+  | 'bgBrightMagenta'
+  | 'bgBrightCyan'
+  | 'bgBrightWhite';
+export type Styles = 'bold' | 'italic' | 'dim' | 'underline' | 'strikethrough' | 'hidden' | 'inverse' | 'clear';
 export const logColors: Record<LogLevel, Colors> = {
   NOTSET: 'white',
   DEBUG: 'clear',
@@ -21,6 +57,57 @@ export const logColors: Record<LogLevel, Colors> = {
   WARNING: 'yellow',
   ERROR: 'red',
   CRITICAL: 'green',
+};
+export const logStyles: Record<LogLevel, Styles> = {
+  NOTSET: 'clear',
+  DEBUG: 'clear',
+  INFO: 'clear',
+  WARNING: 'clear',
+  ERROR: 'clear',
+  CRITICAL: 'bold',
+};
+export const logFunctions: Record<Colors | bgColors | Styles, (str: string) => string> = {
+  bold: (str: string) => colors.bold(str),
+  italic: (str: string) => colors.italic(str),
+  dim: (str: string) => colors.dim(str),
+  underline: (str: string) => colors.underline(str),
+  strikethrough: (str: string) => colors.strikethrough(str),
+  hidden: (str: string) => colors.hidden(str),
+  inverse: (str: string) => colors.inverse(str),
+  black: (str: string) => colors.black(str),
+  red: (str: string) => colors.red(str),
+  green: (str: string) => colors.green(str),
+  yellow: (str: string) => colors.yellow(str),
+  blue: (str: string) => colors.blue(str),
+  magenta: (str: string) => colors.magenta(str),
+  cyan: (str: string) => colors.cyan(str),
+  white: (str: string) => colors.white(str),
+  gray: (str: string) => colors.gray(str),
+  brightBlack: (str: string) => colors.brightBlack(str),
+  brightRed: (str: string) => colors.brightRed(str),
+  brightGreen: (str: string) => colors.brightGreen(str),
+  brightYellow: (str: string) => colors.brightYellow(str),
+  brightBlue: (str: string) => colors.brightBlue(str),
+  brightMagenta: (str: string) => colors.brightMagenta(str),
+  brightCyan: (str: string) => colors.brightCyan(str),
+  brightWhite: (str: string) => colors.brightWhite(str),
+  bgBlack: (str: string) => colors.bgBlack(str),
+  bgRed: (str: string) => colors.bgRed(str),
+  bgGreen: (str: string) => colors.bgGreen(str),
+  bgYellow: (str: string) => colors.bgYellow(str),
+  bgBlue: (str: string) => colors.bgBlue(str),
+  bgMagenta: (str: string) => colors.bgMagenta(str),
+  bgCyan: (str: string) => colors.bgCyan(str),
+  bgWhite: (str: string) => colors.bgWhite(str),
+  bgBrightBlack: (str: string) => colors.bgBrightBlack(str),
+  bgBrightRed: (str: string) => colors.bgBrightRed(str),
+  bgBrightGreen: (str: string) => colors.bgBrightGreen(str),
+  bgBrightYellow: (str: string) => colors.bgBrightYellow(str),
+  bgBrightBlue: (str: string) => colors.bgBrightBlue(str),
+  bgBrightMagenta: (str: string) => colors.bgBrightMagenta(str),
+  bgBrightCyan: (str: string) => colors.bgBrightCyan(str),
+  bgBrightWhite: (str: string) => colors.bgBrightWhite(str),
+  clear: (str: string) => str,
 };
 // #endregion
 export function stringifyBigInt(key: string, value: any): string {
@@ -171,14 +258,16 @@ export default class PagicLogger {
       loggerName: this.name,
     });
     Object.entries(this._config.handlers ?? {}).forEach((logger: [string, BaseHandler | FileHandler]) => {
-      const _msg = logger[1].format(record);
-
-      // messages.push(_msg);
-      if (logger[0] === 'console') {
-        // console.log('msg console: ' + _msg);
-        messages.push(_msg);
+      if (level >= logger[1].level || (this.name === 'test' && level === 0)) {
+        const _msg = logger[1].format(record);
+        // messages.push(_msg);
+        if (logger[0] === 'console') {
+          messages.push(_msg);
+          console.log(_msg);
+        } else {
+          logger[1].handle(record);
+        }
       }
-      logger[1].handle(record);
       //   logger[1].handle(record);
       //   // (logger[1] as FileHandler).flush();
       // }
@@ -227,57 +316,54 @@ export default class PagicLogger {
       return new handlers.FileHandler(config.level, {
         mode: 'w',
         filename: config.path + `/Pagic.${config.format === 'json' ? 'json' : 'log'}`,
-        formatter: (logRecord: LogRecord, handler: PagicLogConfig = config, type: 'file' | 'console' = 'file') => {
-          let msg = this._message(logRecord, handler, type);
-          let args = this._parseArgs(handler.format, logRecord.args);
-          if (config.format === 'json')
-            return JSON.stringify(
-              {
-                logger: this.name,
-                date: logRecord.datetime,
-                level: config.level,
-                msg: msg,
-                args: args,
-              },
-              null,
-              2,
-            );
-          else return msg + args;
-        },
+        formatter: (logRecord: LogRecord, handler: PagicLogConfig = config) => this._formatter(logRecord, handler),
       });
     else
       return new handlers.BaseHandler(config.level, {
-        formatter: (logRecord: LogRecord, handler: PagicLogConfig = config, type: 'file' | 'console' = 'console') => {
+        formatter: (logRecord: LogRecord, handler: PagicLogConfig = config) => {
           let args = this._parseArgs(handler.format, logRecord.args);
-          let msg = this._message(logRecord, handler, type);
-          console.log(msg + (args !== undefined ? args : ''));
+          let msg = this._message(logRecord, handler);
           return msg + (args !== undefined ? args : '');
         },
       });
   }
-  private _message(logRecord: LogRecord, handler: PagicLogConfig, type: 'file' | 'console' = 'console'): string {
-    let msg = logRecord.msg;
-    let consoleMsg = `[${this.name}] ${msg}`;
+  private _formatter(logRecord: LogRecord, handler: PagicLogConfig): string {
+    let msg = this._message(logRecord, handler);
+    let args = this._parseArgs(handler.format, logRecord.args);
+    if (handler.format === 'json')
+      return JSON.stringify(
+        {
+          logger: this.name,
+          date: logRecord.datetime,
+          level: handler.level,
+          msg: msg,
+          args: args,
+        },
+        null,
+        2,
+      );
+    else if (handler.format === 'function') {
+      return logRecord.level + ' ' + msg + (args !== undefined ? args : '');
+    } else {
+      return (handler.date ? logRecord.datetime + ' ' : '') + msg + (args !== undefined ? args : '');
+    }
+  }
+  private _message(logRecord: LogRecord, handler: PagicLogConfig): string {
+    let msg = `[${this.name}] ${logRecord.msg}`;
     // let args: string | undefined = this._parseArgs(handler.format, logRecord.args);
     // console.log('logrecord.Args: ' + logRecord.args);
     // console.log('after' + args);
     // console.log(consoleMsg);
-    if (handler.color && logRecord.levelName in logColors && logRecord.levelName !== 'DEBUG') {
-      // @ts-ignore
-      const colored = colors[logColors[logRecord.levelName]](logRecord.msg);
-      // @ts-ignore
-      const name = colors[logColors[logRecord.levelName]](this.name);
-      // const notColored = logRecord.msg.split(' ').slice(1).join(' ');2
+    if (handler.format !== 'function' && handler.color && logRecord.levelName !== 'DEBUG') {
+      const colored = logFunctions[logColors[logRecord.levelName as LogLevel]](logRecord.msg);
+      const name = logFunctions[logColors[logRecord.levelName as LogLevel]](this.name);
       if (logRecord.levelName === 'CRITICAL') {
-        msg = `\x1b[1m${colored}\x1b[22m`;
-        consoleMsg = `[\x1b[1m${name}\x1b[22m] ${msg}`;
+        msg = `[${logFunctions.bold(name)}] ${logFunctions.bold(colored)}`;
       } else {
-        msg = colored;
-        consoleMsg = `[${name}] ${msg}`;
+        msg = `[${name}] ${colored}`;
       }
     }
-    if (type === 'console') return consoleMsg;
-    else return msg;
+    return msg;
   }
   private _parseArgs(format: LogFormat, ...args: unknown[]) {
     let msg: string | undefined;

@@ -255,6 +255,7 @@ export interface PagicLogConfig {
   format: LogFormat;
   path?: string;
   color?: boolean;
+  date?: boolean;
 }
 /** Configuration pertaining to Pagic theme. */
 export interface PagicThemeConfig {
