@@ -1,4 +1,5 @@
 import type { LogLevel } from 'PagicUtils/mod.ts';
+import { stringifyBigInt } from 'PagicUtils/mod.ts';
 
 export enum strings {
   ansi_reset = '\x1b[0m',
@@ -34,20 +35,20 @@ export enum colors {
  * @param logger logger name string
  * @returns formatted log message
  */
-export function logString(log: string, level: LogLevel = 'ERROR', logger = 'default'): string {
+// eslint-disable-next-line max-params
+export function logString(log: string, level: LogLevel = 'ERROR', logger = 'default', ...args: unknown[]): string {
   const logColor = colorLog(level, logger);
   const colorSuffix = logColor === '0' ? '0' : strings.color_suffix;
   const bold = level === 'CRITICAL' ? true : false;
-  let msg = '';
-  let _log = level === 'NOTSET' && logger === 'test' ? 'deDEBUG:' + log : log;
-  switch (logger) {
-    case 'undefined':
-      msg = color(`${level} ${_log}`, logColor, colorSuffix, bold);
-      break;
-    default:
-      msg = `[${color(logger, logColor, colorSuffix, bold)}] ${color(_log, logColor, colorSuffix, bold)}`;
-      break;
+  const _log = level === 'NOTSET' && logger === 'test' ? 'deDEBUG:' + log : log;
+  let msg = `[${color(logger, logColor, colorSuffix, bold)}] ${color(_log, logColor, colorSuffix, bold)}`;
+  // console.log(JSON.stringify(args, null, 2));
+  if (args !== null && args !== undefined && args.toString() !== '') {
+    // console.log('inside args');
+    // msg = msg + ' \nArguments:\t' + JSON.stringify(JSON.parse(JSON.stringify(args, stringifyBigInt))[0], null, 2);
+    msg = msg + ' \nArguments:' + JSON.stringify(args[0], stringifyBigInt, 2);
   }
+  // console.log(msg);
   return msg;
 }
 // eslint-disable-next-line max-params
@@ -58,12 +59,12 @@ export function color(
   bold = false,
   underline = false,
 ) {
-  let _underline = underline ? strings.underline_prefix : '';
-  let _bold = bold ? strings.bold_prefix : '';
-  let _prefix = Number(prefix) > 0 ? `\x1b[${prefix}m` : '';
-  let _suffix = suffix !== '0' ? suffix : '';
-  let _underline_suffix = underline ? strings.underline_suffix : '';
-  let _bold_suffix = bold ? strings.bold_suffix : '';
+  const _underline = underline ? strings.underline_prefix : '';
+  const _bold = bold ? strings.bold_prefix : '';
+  const _prefix = Number(prefix) > 0 ? `\x1b[${prefix}m` : '';
+  const _suffix = suffix !== '0' ? suffix : '';
+  const _underline_suffix = underline ? strings.underline_suffix : '';
+  const _bold_suffix = bold ? strings.bold_suffix : '';
   let msg = `${_bold}${_underline}${_prefix}${s}${_suffix}${_underline_suffix}${_bold_suffix}`;
   return msg;
 }

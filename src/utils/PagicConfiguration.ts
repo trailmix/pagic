@@ -554,9 +554,9 @@ export default class PagicConfiguration {
         ...(cmd.logPath !== undefined
           ? {
               file: {
-                level: (cmd.logPath as LogLevel) ?? PagicConfiguration.log.file?.level,
-                format: (cmd.logLevel as LogFormat) ?? PagicConfiguration.log.file?.format,
-                path: (cmd.logFormat as string) ?? PagicConfiguration.log.file?.path,
+                level: (cmd.logLevel as LogLevel) ?? PagicConfiguration.log.file?.level ?? 'ERROR',
+                format: (cmd.logFormat as LogFormat) ?? PagicConfiguration.log.file?.format ?? 'json',
+                path: (cmd.logPath as string) ?? PagicConfiguration.log.file?.path,
               },
             }
           : {}),

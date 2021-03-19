@@ -1,6 +1,7 @@
 // export { default as Pagic } from './src/Pagic.ts';
 export { LoggerConfig, Logger, setup as setupLogger, getLogger, handlers as loggerHandlers } from 'log/mod.ts';
 export type { BaseHandler, FileHandler } from 'log/handlers.ts';
+export type { LogConfig } from 'log/mod.ts';
 export { getLevelByName } from 'log/levels.ts';
 export { LogRecord } from 'log/logger.ts';
 
