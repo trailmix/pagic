@@ -33,9 +33,9 @@ jobs:
         run: deno test --unstable --allow-env --allow-read --allow-write --allow-net --allow-run --import-map=import_map.json src/tests
 
       - name: Generate codecov report
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && always()
         run: deno coverage --unstable ./coverage --lcov > ./coverage/lcov.info
 
       - name: Push codecov report
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && always()
         run: bash <(curl -s https://codecov.io/bash)
