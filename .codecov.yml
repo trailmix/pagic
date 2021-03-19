@@ -3,9 +3,30 @@
 #     require_ci_to_pass: yes
 
 coverage:
+  status:
+    src:
+      target: auto
+      threshold: 7%
+      base: auto
+      if_ci_failed: success
+      paths:
+        - src/
+        - '!src/tests/'
+      flags:
+        - src
+    test:
+      target: 60%
+      threshold: 10%
+      if_ci_failed: error
+      base: auto
+      paths:
+        - src/tests/
+      flags:
+        - test
   precision: 2
   round: down
   range: '70...100'
+
 flags:
   src:
     paths:
